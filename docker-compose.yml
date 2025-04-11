@@ -4,7 +4,7 @@ services:
     container_name: n8n-playwright
     restart: unless-stopped
     ports:
-      - "8097:5678" # <- Porta externa 8080
+      - "8097:5678"
     volumes:
       - n8n_data:/home/nodeuser/.n8n
     environment:
