@@ -6,6 +6,10 @@ services:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=admin
       - N8N_BASIC_AUTH_PASSWORD=senha
+      - WEBHOOK_URL=https://supabase-testando-n8n.tut28y.easypanel.host/
+      - N8N_SECURE_COOKIE=false
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
     ports:
       - "5685:5678"  # alterado para evitar conflito
     volumes:
