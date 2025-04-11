@@ -1,9 +1,8 @@
-# Dockerfile
-FROM node:18-slim
+FROM node:20-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instala libs necessárias para Chromium e Playwright
+# Instala dependências do sistema para Chromium/Playwright
 RUN apt-get update && apt-get install -y \
     wget curl gnupg ca-certificates \
     fonts-liberation libatk-bridge2.0-0 libatk1.0-0 \
@@ -13,28 +12,27 @@ RUN apt-get update && apt-get install -y \
     libu2f-udev --no-install-recommends && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Cria usuário não-root
-RUN useradd -m nodeuser
-
-# Instala Playwright como root (obrigatório para -g)
+# Instala Playwright globalmente e baixa navegadores
 RUN npm install -g playwright && \
     npx playwright install --with-deps
 
-# Instala n8n
+# Instala o n8n globalmente
 RUN npm install -g n8n
 
-# Ajusta permissões da pasta de cache do Playwright (importante!)
-RUN mkdir -p /home/nodeuser/.cache && \
-    chown -R nodeuser:nodeuser /home/nodeuser/.cache
+# Cria usuário não-root e define permissões
+RUN useradd -m nodeuser
 
-# Define usuário final como nodeuser
-USER nodeuser
+# Define diretório de trabalho
 WORKDIR /home/nodeuser
 
-# Cria pasta de dados e garante permissões
-RUN mkdir -p /home/nodeuser/.n8n
+# Cria pasta de dados com permissões
+RUN mkdir -p /home/nodeuser/.n8n && chown -R nodeuser:nodeuser /home/nodeuser
 
-# Expõe a porta padrão
+# Troca para o usuário não-root
+USER nodeuser
+
+# Expõe a porta padrão do n8n
 EXPOSE 5678
 
+# Comando padrão ao iniciar o container
 CMD ["n8n"]
