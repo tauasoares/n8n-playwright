@@ -16,23 +16,23 @@ RUN apt-get update && apt-get install -y \
 # Cria usuário não-root
 RUN useradd -m nodeuser
 
-# Instala Playwright com navegadores como nodeuser (importante!)
-USER nodeuser
-WORKDIR /home/nodeuser
+# Instala Playwright como root (obrigatório para -g)
 RUN npm install -g playwright && \
-    playwright install --with-deps
+    npx playwright install --with-deps
 
-# Volta pro root para instalar o n8n
-USER root
+# Instala n8n
 RUN npm install -g n8n
 
-# Define permissões corretas da pasta do n8n
-RUN mkdir -p /home/nodeuser/.n8n && \
-    chown -R nodeuser:nodeuser /home/nodeuser/.n8n
+# Ajusta permissões da pasta de cache do Playwright (importante!)
+RUN mkdir -p /home/nodeuser/.cache && \
+    chown -R nodeuser:nodeuser /home/nodeuser/.cache
 
-# Volta pro nodeuser para rodar o n8n
+# Define usuário final como nodeuser
 USER nodeuser
 WORKDIR /home/nodeuser
+
+# Cria pasta de dados e garante permissões
+RUN mkdir -p /home/nodeuser/.n8n
 
 # Expõe a porta padrão
 EXPOSE 5678
