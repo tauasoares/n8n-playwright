@@ -1,16 +1,34 @@
-FROM node:18
+# Dockerfile
+FROM node:18-slim
 
-# Instala dependências do sistema
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Instala libs para Chromium e Playwright
 RUN apt-get update && apt-get install -y \
-    wget gnupg curl libnss3 libatk-bridge2.0-0 libxss1 libasound2 libxshmfence1 libgbm1 libgtk-3-0 libx11-xcb1
+    wget curl gnupg ca-certificates \
+    fonts-liberation libatk-bridge2.0-0 libatk1.0-0 \
+    libgtk-3-0 libx11-xcb1 libxcomposite1 libxdamage1 \
+    libxrandr2 libasound2 libnss3 libxss1 libxtst6 libgbm1 \
+    libpango-1.0-0 libpangocairo-1.0-0 libxshmfence1 libglu1-mesa \
+    libu2f-udev --no-install-recommends && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instala n8n e playwright
-RUN npm install -g n8n playwright && \
-    npx playwright install
+# Instala Playwright com navegadores
+RUN npm install -g playwright && \
+    playwright install --with-deps
 
-# Cria usuário n8n
-RUN useradd -m -s /bin/bash node
+# Instala o n8n
+RUN npm install -g n8n
 
-USER node
+# Cria usuário não-root
+RUN useradd -m nodeuser
+USER nodeuser
+WORKDIR /home/nodeuser
+
+# Cria pasta de dados
+RUN mkdir -p /home/nodeuser/.n8n
+
+# Expondo a porta padrão
+EXPOSE 5678
 
 CMD ["n8n"]
