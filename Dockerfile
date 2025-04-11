@@ -3,7 +3,7 @@ FROM node:18-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instala libs para Chromium e Playwright
+# Instala libs necessárias para Chromium e Playwright
 RUN apt-get update && apt-get install -y \
     wget curl gnupg ca-certificates \
     fonts-liberation libatk-bridge2.0-0 libatk1.0-0 \
@@ -13,22 +13,28 @@ RUN apt-get update && apt-get install -y \
     libu2f-udev --no-install-recommends && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instala Playwright com navegadores
+# Cria usuário não-root
+RUN useradd -m nodeuser
+
+# Instala Playwright com navegadores como nodeuser (importante!)
+USER nodeuser
+WORKDIR /home/nodeuser
 RUN npm install -g playwright && \
     playwright install --with-deps
 
-# Instala o n8n
+# Volta pro root para instalar o n8n
+USER root
 RUN npm install -g n8n
 
-# Cria usuário não-root
-RUN useradd -m nodeuser
+# Define permissões corretas da pasta do n8n
+RUN mkdir -p /home/nodeuser/.n8n && \
+    chown -R nodeuser:nodeuser /home/nodeuser/.n8n
+
+# Volta pro nodeuser para rodar o n8n
 USER nodeuser
 WORKDIR /home/nodeuser
 
-# Cria pasta de dados
-RUN mkdir -p /home/nodeuser/.n8n
-
-# Expondo a porta padrão
+# Expõe a porta padrão
 EXPOSE 5678
 
 CMD ["n8n"]
